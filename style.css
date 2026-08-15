@@ -19,7 +19,7 @@
     --radius-sm: 10px;
 
     /* 広告枠の高さ（一元管理） */
-    --ad-height: 60px;
+    --ad-height: 100px;
 }
 
 * {
