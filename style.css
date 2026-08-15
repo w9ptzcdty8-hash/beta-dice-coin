@@ -145,7 +145,7 @@ button {
 .panel {
     display: none;
     flex-direction: column;
-    flex: 1;
+    /*flex: 1;*/
 }
 
 .panel.is-active {
@@ -363,7 +363,7 @@ button {
 ======================================== */
 
 .history-section {
-    flex: 1;
+    /*flex: 1;*/
 }
 
 .history-header {
