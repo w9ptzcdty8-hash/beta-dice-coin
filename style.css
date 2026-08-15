@@ -57,7 +57,7 @@ button {
     padding: 16px;
 
     /* 固定広告によるコンテンツ隠れ防止 */
-    padding-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 40px);
+    padding-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
 
     display: flex;
     flex-direction: column;
