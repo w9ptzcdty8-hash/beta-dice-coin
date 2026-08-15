@@ -19,7 +19,7 @@
     --radius-sm: 10px;
 
     /* 広告枠の高さ（一元管理） */
-    --ad-height: 160px;
+    --ad-height: 60px;
 }
 
 * {
@@ -57,7 +57,8 @@ button {
     padding: 16px;
 
     /* 固定広告によるコンテンツ隠れ防止 */
-    padding-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
+    /*Webkit でflexbocが無視されるので、修正*/
+    /*padding-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);*/
 
     display: flex;
     flex-direction: column;
@@ -364,6 +365,7 @@ button {
 
 .history-section {
     /*flex: 1;*/
+    margin-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
 }
 
 .history-header {
