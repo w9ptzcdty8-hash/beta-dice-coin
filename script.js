@@ -18,9 +18,10 @@ const STORAGE_KEYS = {
     coinHistory: "dc_coinHistory",
 };
 
-const DEFAULT_DICE_SETTINGS = { count: 1, faces: 6 };
+const DEFAULT_DICE_SETTINGS = { count: 1 };
 const DEFAULT_COIN_SETTINGS = { count: 1 };
 
+const DICE_FACES = 6;
 const HISTORY_LIMIT = 10;
 const ANIM_MS = 950;
 
@@ -34,31 +35,6 @@ const CUBE_FACE_ROT = {
     5: { x: 0, y: 90 },
     6: { x: 0, y: 180 },
 };
-
-// D8（正八面体）の面配置
-// 実際の正八面体の頂点座標 (±a,0,0)(0,±a,0)(0,0,±a) から算出した角度。
-// 面の傾き角 = arccos(1/√3) ≈ 54.7356°
-const OCTA_TILT = (Math.acos(1 / Math.sqrt(3)) * 180) / Math.PI; // ≈ 54.7356
-const OCTA_FACE_PLACEMENT = [
-    // { azimuth, tilt, side } side: 'top' | 'bottom' -- 面自体の固定配置（clip-path方向の判定用）
-    { azimuth: 45, tilt: OCTA_TILT, side: "top" },
-    { azimuth: 135, tilt: OCTA_TILT, side: "top" },
-    { azimuth: 225, tilt: OCTA_TILT, side: "top" },
-    { azimuth: 315, tilt: OCTA_TILT, side: "top" },
-    { azimuth: 45, tilt: 180 - OCTA_TILT, side: "bottom" },
-    { azimuth: 135, tilt: 180 - OCTA_TILT, side: "bottom" },
-    { azimuth: 225, tilt: 180 - OCTA_TILT, side: "bottom" },
-    { azimuth: 315, tilt: 180 - OCTA_TILT, side: "bottom" },
-];
-
-// 値(1-8) -> その面を正面に向けるための、立体全体の回転角
-// (面の固定配置transformの逆回転)
-const OCTA_FACE_ROT = {};
-OCTA_FACE_PLACEMENT.forEach((f, idx) => {
-    OCTA_FACE_ROT[idx + 1] = { x: -f.tilt, y: -f.azimuth };
-});
-
-const OCTA_RADIUS = 21; // 中心から面までの距離(px)
 
 // ========================================
 // State
@@ -131,7 +107,6 @@ function cacheEls() {
     el.settingsBodyCoin = document.querySelector('.modal-body[data-settings="coin"]');
     el.diceCountValue = document.getElementById("diceCountValue");
     el.coinCountValue = document.getElementById("coinCountValue");
-    el.diceFaceSelect = document.getElementById("diceFaceSelect");
     el.settingsCancelBtn = document.getElementById("settingsCancelBtn");
     el.settingsConfirmBtn = document.getElementById("settingsConfirmBtn");
 
@@ -157,7 +132,39 @@ function init() {
     bindSettingsEvents();
     bindClearEvents();
 
+    setupAdHeightSync();
+
     console.log("DICE & COIN initialized");
+}
+
+// ========================================
+// Ad banner height sync
+// 広告は外部スクリプトが後から読み込まれ高さが変動するため、
+// 実際の高さを計測して --ad-height に反映し、
+// 履歴やボタンが広告に隠れないようにする。
+// ========================================
+
+function setupAdHeightSync() {
+    const adBanner = document.querySelector(".ad-banner");
+    if (!adBanner) return;
+
+    const applyHeight = () => {
+        const h = adBanner.offsetHeight;
+        if (h > 0) {
+            document.documentElement.style.setProperty("--ad-height", `${h}px`);
+        }
+    };
+
+    applyHeight();
+
+    if (window.ResizeObserver) {
+        const observer = new ResizeObserver(applyHeight);
+        observer.observe(adBanner);
+    }
+
+    // 広告の外部スクリプトは非同期で読み込まれ、直後は高さが0の場合があるため
+    // 読み込み後の複数タイミングで再計測してフォールバックする。
+    [300, 800, 1500, 3000].forEach((delay) => setTimeout(applyHeight, delay));
 }
 
 // ========================================
@@ -195,80 +202,50 @@ function getActiveTab() {
 
 function renderDiceStage() {
     el.diceStage.innerHTML = "";
-    const { count, faces } = state.diceSettings;
+    const { count } = state.diceSettings;
 
     for (let i = 0; i < count; i++) {
-        el.diceStage.appendChild(createDieElement(faces));
+        el.diceStage.appendChild(createDieElement());
     }
 
     el.diceResultArea.innerHTML = '<p class="result-hint">ROLLを押してください</p>';
 }
 
-function createDieElement(faces) {
+function createDieElement() {
     const slot = document.createElement("div");
     slot.className = "die-slot";
 
-    if (faces === 6) {
-        const wrap = document.createElement("div");
-        wrap.className = "die-cube-wrap";
+    const wrap = document.createElement("div");
+    wrap.className = "die-cube-wrap";
 
-        const cube = document.createElement("div");
-        cube.className = "die-cube";
-        cube.dataset.rotX = "0";
-        cube.dataset.rotY = "0";
+    const cube = document.createElement("div");
+    cube.className = "die-cube";
+    cube.dataset.rotX = "0";
+    cube.dataset.rotY = "0";
 
-        const positions = [
-            ["front", 1],
-            ["right", 2],
-            ["top", 3],
-            ["bottom", 4],
-            ["left", 5],
-            ["back", 6],
-        ];
+    const positions = [
+        ["front", 1],
+        ["right", 2],
+        ["top", 3],
+        ["bottom", 4],
+        ["left", 5],
+        ["back", 6],
+    ];
 
-        positions.forEach(([pos, value]) => {
-            const face = document.createElement("div");
-            face.className = `die-face die-face--${pos}`;
-            face.dataset.value = String(value);
-            for (let d = 1; d <= 9; d++) {
-                const dot = document.createElement("span");
-                dot.className = `dot dot-${d}`;
-                face.appendChild(dot);
-            }
-            cube.appendChild(face);
-        });
+    positions.forEach(([pos, value]) => {
+        const face = document.createElement("div");
+        face.className = `die-face die-face--${pos}`;
+        face.dataset.value = String(value);
+        for (let d = 1; d <= 9; d++) {
+            const dot = document.createElement("span");
+            dot.className = `dot dot-${d}`;
+            face.appendChild(dot);
+        }
+        cube.appendChild(face);
+    });
 
-        wrap.appendChild(cube);
-        slot.appendChild(wrap);
-    } else {
-        // D8（正八面体）
-        const wrap = document.createElement("div");
-        wrap.className = "die-octa-wrap";
-
-        const octa = document.createElement("div");
-        octa.className = "die-octa";
-        octa.dataset.rotX = String(-OCTA_TILT);
-        octa.dataset.rotY = "-45";
-
-        OCTA_FACE_PLACEMENT.forEach((f, idx) => {
-            const value = idx + 1;
-            const face = document.createElement("div");
-            face.className = `die-octa-face die-octa-face--${f.side}`;
-            face.dataset.value = String(value);
-            face.textContent = String(value);
-            face.style.transform =
-                `rotateY(${f.azimuth}deg) rotateX(${f.tilt}deg) translateZ(${OCTA_RADIUS}px)`;
-            octa.appendChild(face);
-        });
-
-        wrap.appendChild(octa);
-
-        const label = document.createElement("div");
-        label.className = "die-label";
-        label.textContent = `D${faces}`;
-        slot.appendChild(wrap);
-        slot.appendChild(label);
-    }
+    wrap.appendChild(cube);
+    slot.appendChild(wrap);
 
     return slot;
 }
@@ -326,62 +303,44 @@ function rollDice() {
     state.isRolling = true;
     setRollingUI(true);
 
-    const { count, faces } = state.diceSettings;
+    const { count } = state.diceSettings;
 
     // 乱数生成（アニメーションとは独立して先に結果を確定する）
     const results = [];
     for (let i = 0; i < count; i++) {
-        results.push(1 + Math.floor(Math.random() * faces));
+        results.push(1 + Math.floor(Math.random() * DICE_FACES));
     }
 
     const dieSlots = el.diceStage.querySelectorAll(".die-slot");
     dieSlots.forEach((slot, i) => {
-        animateDie(slot, faces, results[i]);
+        animateDie(slot, results[i]);
     });
 
     setTimeout(() => {
-        showDiceResult(results, faces);
-        pushDiceHistory(results, faces);
+        showDiceResult(results);
+        pushDiceHistory(results);
         state.isRolling = false;
         setRollingUI(false);
     }, ANIM_MS);
 }
 
-function animateDie(slot, faces, value) {
-    if (faces === 6) {
-        const cube = slot.querySelector(".die-cube");
-        const target = CUBE_FACE_ROT[value];
-        const curX = parseFloat(cube.dataset.rotX) || 0;
-        const curY = parseFloat(cube.dataset.rotY) || 0;
+function animateDie(slot, value) {
+    const cube = slot.querySelector(".die-cube");
+    const target = CUBE_FACE_ROT[value];
+    const curX = parseFloat(cube.dataset.rotX) || 0;
+    const curY = parseFloat(cube.dataset.rotY) || 0;
 
-        const spinTurnsX = 360 * (2 + Math.floor(Math.random() * 2));
-        const spinTurnsY = 360 * (2 + Math.floor(Math.random() * 2));
+    const spinTurnsX = 360 * (2 + Math.floor(Math.random() * 2));
+    const spinTurnsY = 360 * (2 + Math.floor(Math.random() * 2));
 
-        // 現在の回転量を基準に、目的の面が正面になる角度まで回す
-        const nextX = roundToTarget(curX, target.x) + spinTurnsX;
-        const nextY = roundToTarget(curY, target.y) + spinTurnsY;
+    // 現在の回転量を基準に、目的の面が正面になる角度まで回す
+    const nextX = roundToTarget(curX, target.x) + spinTurnsX;
+    const nextY = roundToTarget(curY, target.y) + spinTurnsY;
 
-        cube.classList.add("is-rolling");
-        cube.style.transform = `rotateX(${nextX}deg) rotateY(${nextY}deg)`;
-        cube.dataset.rotX = String(nextX);
-        cube.dataset.rotY = String(nextY);
-    } else {
-        const octa = slot.querySelector(".die-octa");
-        const target = OCTA_FACE_ROT[value];
-        const curX = parseFloat(octa.dataset.rotX) || 0;
-        const curY = parseFloat(octa.dataset.rotY) || 0;
-
-        const spinTurnsX = 360 * (2 + Math.floor(Math.random() * 2));
-        const spinTurnsY = 360 * (2 + Math.floor(Math.random() * 2));
-
-        const nextX = roundToTarget(curX, target.x) + spinTurnsX;
-        const nextY = roundToTarget(curY, target.y) + spinTurnsY;
-
-        octa.classList.add("is-rolling");
-        octa.style.transform = `rotateX(${nextX}deg) rotateY(${nextY}deg)`;
-        octa.dataset.rotX = String(nextX);
-        octa.dataset.rotY = String(nextY);
-    }
+    cube.classList.add("is-rolling");
+    cube.style.transform = `rotateX(${nextX}deg) rotateY(${nextY}deg)`;
+    cube.dataset.rotX = String(nextX);
+    cube.dataset.rotY = String(nextY);
 }
 
 // 現在値から見て、目的の余り(target)に到達する直近の値を返す
@@ -396,7 +355,7 @@ function roundToMultiple360(current) {
     return Math.ceil(current / 360) * 360;
 }
 
-function showDiceResult(results, faces) {
+function showDiceResult(results) {
     const total = results.reduce((sum, v) => sum + v, 0);
     const valuesHtml = results.map((v) => `<span>${v}</span>`).join("");
     el.diceResultArea.innerHTML = `
@@ -405,10 +364,10 @@ function showDiceResult(results, faces) {
     `;
 }
 
-function pushDiceHistory(results, faces) {
+function pushDiceHistory(results) {
     const total = results.reduce((sum, v) => sum + v, 0);
     const entry = {
-        faces,
+        faces: DICE_FACES,
         count: results.length,
         results,
         total,
@@ -617,13 +576,6 @@ function bindSettingsEvents() {
         });
     });
 
-    el.diceFaceSelect.querySelectorAll(".face-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            state.draft.faces = Number(btn.dataset.face);
-            renderSettingsDraft();
-        });
-    });
-
     el.settingsCancelBtn.addEventListener("click", closeSettingsModal);
     el.settingsConfirmBtn.addEventListener("click", confirmSettings);
 
@@ -672,9 +624,6 @@ function clamp(value, min, max) {
 function renderSettingsDraft() {
     if (state.settingsTarget === "dice") {
         el.diceCountValue.textContent = String(state.draft.count);
-        el.diceFaceSelect.querySelectorAll(".face-btn").forEach((btn) => {
-            btn.classList.toggle("is-selected", Number(btn.dataset.face) === state.draft.faces);
-        });
     } else {
         el.coinCountValue.textContent = String(state.draft.count);
     }
