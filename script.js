@@ -35,6 +35,31 @@ const CUBE_FACE_ROT = {
     6: { x: 0, y: 180 },
 };
 
+// D8（正八面体）の面配置
+// 実際の正八面体の頂点座標 (±a,0,0)(0,±a,0)(0,0,±a) から算出した角度。
+// 面の傾き角 = arccos(1/√3) ≈ 54.7356°
+const OCTA_TILT = (Math.acos(1 / Math.sqrt(3)) * 180) / Math.PI; // ≈ 54.7356
+const OCTA_FACE_PLACEMENT = [
+    // { azimuth, tilt, side } side: 'top' | 'bottom' -- 面自体の固定配置（clip-path方向の判定用）
+    { azimuth: 45, tilt: OCTA_TILT, side: "top" },
+    { azimuth: 135, tilt: OCTA_TILT, side: "top" },
+    { azimuth: 225, tilt: OCTA_TILT, side: "top" },
+    { azimuth: 315, tilt: OCTA_TILT, side: "top" },
+    { azimuth: 45, tilt: 180 - OCTA_TILT, side: "bottom" },
+    { azimuth: 135, tilt: 180 - OCTA_TILT, side: "bottom" },
+    { azimuth: 225, tilt: 180 - OCTA_TILT, side: "bottom" },
+    { azimuth: 315, tilt: 180 - OCTA_TILT, side: "bottom" },
+];
+
+// 値(1-8) -> その面を正面に向けるための、立体全体の回転角
+// (面の固定配置transformの逆回転)
+const OCTA_FACE_ROT = {};
+OCTA_FACE_PLACEMENT.forEach((f, idx) => {
+    OCTA_FACE_ROT[idx + 1] = { x: -f.tilt, y: -f.azimuth };
+});
+
+const OCTA_RADIUS = 21; // 中心から面までの距離(px)
+
 // ========================================
 // State
 // ========================================
@@ -216,20 +241,27 @@ function createDieElement(faces) {
         wrap.appendChild(cube);
         slot.appendChild(wrap);
     } else {
+        // D8（正八面体）
         const wrap = document.createElement("div");
-        wrap.className = "die-disc-wrap";
+        wrap.className = "die-octa-wrap";
 
-        const disc = document.createElement("div");
-        disc.className = "die-disc";
-        disc.dataset.rotX = "0";
-        disc.dataset.rotY = "0";
+        const octa = document.createElement("div");
+        octa.className = "die-octa";
+        octa.dataset.rotX = String(-OCTA_TILT);
+        octa.dataset.rotY = "-45";
 
-        const face = document.createElement("div");
-        face.className = `die-disc-face die-disc-face--d${faces}`;
-        face.textContent = "1";
-        disc.appendChild(face);
+        OCTA_FACE_PLACEMENT.forEach((f, idx) => {
+            const value = idx + 1;
+            const face = document.createElement("div");
+            face.className = `die-octa-face die-octa-face--${f.side}`;
+            face.dataset.value = String(value);
+            face.textContent = String(value);
+            face.style.transform =
+                `rotateY(${f.azimuth}deg) rotateX(${f.tilt}deg) translateZ(${OCTA_RADIUS}px)`;
+            octa.appendChild(face);
+        });
 
-        wrap.appendChild(disc);
+        wrap.appendChild(octa);
 
         const label = document.createElement("div");
         label.className = "die-label";
@@ -334,20 +366,21 @@ function animateDie(slot, faces, value) {
         cube.dataset.rotX = String(nextX);
         cube.dataset.rotY = String(nextY);
     } else {
-        const disc = slot.querySelector(".die-disc");
-        const face = slot.querySelector(".die-disc-face");
-        face.textContent = String(value);
+        const octa = slot.querySelector(".die-octa");
+        const target = OCTA_FACE_ROT[value];
+        const curX = parseFloat(octa.dataset.rotX) || 0;
+        const curY = parseFloat(octa.dataset.rotY) || 0;
 
-        const curX = parseFloat(disc.dataset.rotX) || 0;
-        const curY = parseFloat(disc.dataset.rotY) || 0;
+        const spinTurnsX = 360 * (2 + Math.floor(Math.random() * 2));
+        const spinTurnsY = 360 * (2 + Math.floor(Math.random() * 2));
 
-        const nextX = roundToMultiple360(curX) + 360 * (2 + Math.floor(Math.random() * 2));
-        const nextY = roundToMultiple360(curY) + 360 * (1 + Math.floor(Math.random() * 2));
+        const nextX = roundToTarget(curX, target.x) + spinTurnsX;
+        const nextY = roundToTarget(curY, target.y) + spinTurnsY;
 
-        disc.classList.add("is-rolling");
-        disc.style.transform = `rotateX(${nextX}deg) rotateY(${nextY}deg)`;
-        disc.dataset.rotX = String(nextX);
-        disc.dataset.rotY = String(nextY);
+        octa.classList.add("is-rolling");
+        octa.style.transform = `rotateX(${nextX}deg) rotateY(${nextY}deg)`;
+        octa.dataset.rotX = String(nextX);
+        octa.dataset.rotY = String(nextY);
     }
 }
 

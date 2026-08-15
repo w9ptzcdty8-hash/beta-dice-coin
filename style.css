@@ -10,8 +10,9 @@
     --color-border: #2c2c2c;
     --color-text: #f5f5f5;
     --color-text-muted: #8a8a8a;
-    --color-accent: #2fe07a;
-    --color-accent-dim: #1f9c58;
+    --color-accent: #ff8a3d;
+    --color-accent-dim: #cc6a24;
+    --color-on-accent: #23100a;
     --color-danger: #e0522f;
     --radius-lg: 20px;
     --radius-md: 14px;
@@ -56,7 +57,7 @@ button {
     padding: 16px;
 
     /* 固定広告によるコンテンツ隠れ防止 */
-    padding-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
+    padding-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 16px);
 
     display: flex;
     flex-direction: column;
@@ -244,47 +245,60 @@ button {
 .die-face--top    { transform: rotateX(90deg) translateZ(39px); }
 .die-face--bottom { transform: rotateX(-90deg) translateZ(39px); }
 
-/* ---- Dice: D8 / D10 / D12 pseudo-3D disc ---- */
+/* ---- Dice: D8 (正八面体 / 本格3D) ----
+   8枚の三角形の面を、実際の正八面体の頂点座標から算出した
+   角度(54.7356°)で立体的に配置している。
+   上4面: rotateY(45+90*i) rotateX(54.7356deg) translateZ(d)
+   下4面: rotateY(45+90*i) rotateX(125.2644deg) translateZ(d)
+*/
 
-.die-disc-wrap {
+.die-octa-wrap {
     width: 78px;
     height: 78px;
-    perspective: 500px;
+    perspective: 600px;
 }
 
-.die-disc {
+.die-octa {
     width: 100%;
     height: 100%;
     position: relative;
     transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg);
+    transform: rotateX(-54.7356deg) rotateY(-45deg);
     transition: transform 0.9s cubic-bezier(0.2, 0.85, 0.35, 1);
 }
 
-.die-disc.is-rolling {
+.die-octa.is-rolling {
     transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.die-disc-face {
+.die-octa-face {
     position: absolute;
-    inset: 0;
+    width: 50px;
+    height: 43px;
+    left: 50%;
+    top: 50%;
+    margin-left: -25px;
+    margin-top: -21.5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
+    font-size: 15px;
     font-weight: 800;
     color: var(--color-text);
     background: linear-gradient(155deg, #262626, #141414);
     border: 1px solid var(--color-border);
-    box-shadow:
-        0 0 0 4px #1a1a1a,
-        0 0 0 5px var(--color-border),
-        0 10px 18px rgba(0, 0, 0, 0.45);
+    backface-visibility: hidden;
 }
 
-.die-disc-face--d8 { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
-.die-disc-face--d10 { clip-path: polygon(50% 0%, 90% 20%, 100% 65%, 70% 100%, 30% 100%, 0% 65%, 10% 20%); }
-.die-disc-face--d12 { clip-path: polygon(50% 0%, 79% 10%, 98% 35%, 91% 68%, 68% 92%, 32% 92%, 9% 68%, 2% 35%, 21% 10%); }
+.die-octa-face--top {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    padding-top: 6px;
+}
+
+.die-octa-face--bottom {
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+    padding-bottom: 6px;
+}
 
 .die-label {
     position: absolute;
@@ -393,7 +407,7 @@ button {
     font-size: 18px;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: #06170e;
+    color: var(--color-on-accent);
     background: var(--color-accent);
     border: none;
     border-radius: var(--radius-lg);
@@ -591,7 +605,7 @@ button {
 
 .face-select {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
 }
 
@@ -608,7 +622,7 @@ button {
 .face-btn.is-selected {
     background: var(--color-accent);
     border-color: var(--color-accent);
-    color: #06170e;
+    color: var(--color-on-accent);
 }
 
 .modal-actions {
@@ -633,7 +647,7 @@ button {
 
 .modal-btn--confirm {
     background: var(--color-accent);
-    color: #06170e;
+    color: var(--color-on-accent);
 }
 
 .modal-btn--danger {
@@ -661,7 +675,7 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
     .die-cube,
-    .die-disc,
+    .die-octa,
     .coin {
         transition-duration: 0.01ms !important;
     }
