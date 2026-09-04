@@ -278,7 +278,7 @@ function createCoinElement() {
     heads.className = "coin-face coin-face--heads";
 
     const logo = document.createElement("img");
-    logo.src = "assets/images/mrs games logo.jpg";
+    logo.src = "assets/images/mrs games logo noback.png";
     logo.alt = "MRS GAMES";
     logo.className = "coin-logo";
     heads.appendChild(logo);
