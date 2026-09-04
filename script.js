@@ -285,7 +285,6 @@ function createCoinElement() {
 
     const tails = document.createElement("div");
     tails.className = "coin-face coin-face--tails";
-    tails.textContent = "裏";
 
     coin.appendChild(heads);
     coin.appendChild(tails);
