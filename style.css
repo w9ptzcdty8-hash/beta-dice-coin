@@ -617,11 +617,8 @@ button {
 .ad-banner {
     position: fixed;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: max-content;
-    max-width: 100%;
-    min-height: var(--ad-height);
+    left: 0;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
