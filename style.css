@@ -64,6 +64,20 @@ button {
     flex-direction: column;
 }
 
+.brand-link {
+    display: inline-block;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.brand-link:active {
+    opacity: 0.7;
+}
+
 /* ========================================
    Buttons (common)
 ======================================== */
@@ -88,33 +102,33 @@ button {
 
 .tabs {
     display: flex;
-    gap: 24px;
+    gap: 0;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 3px;
 }
 
 .tab-btn {
-    background: none;
+    background: transparent;
     border: none;
     color: var(--color-text-muted);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    padding: 10px 2px;
+    padding: 8px 18px;
+    min-width: 72px;
+    border-radius: 9px;
     position: relative;
 }
 
 .tab-btn.is-active {
-    color: var(--color-accent);
+    color: var(--color-text);
+    background: var(--color-bg-raised);
 }
 
 .tab-btn.is-active::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    background: var(--color-accent);
-    border-radius: 2px;
+    content: none;
 }
 
 .settings-btn {
@@ -605,18 +619,29 @@ button {
     bottom: 0;
     left: 0;
     width: 100%;
-    min-height: var(--ad-height);
-    
     display: flex;
     justify-content: center;
     align-items: center;
-
     background-color: #121212;
-
     z-index: 1000;
-
     padding-top: 1px;
     padding-bottom: calc(1px + env(safe-area-inset-bottom));
-
     border-top: 1px solid #333;
+}
+
+
+/* MRS TOOLS footer link */
+.tools-footer-link {
+    text-align: center;
+    margin: 0 0 calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
+    font-size: 13px;
+}
+
+.tools-footer-link a {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+}
+
+.tools-footer-link a:active {
+    opacity: 0.7;
 }
