@@ -633,7 +633,7 @@ button {
 /* MRS TOOLS footer link */
 .tools-footer-link {
     text-align: center;
-    margin: 4px 0 calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
+    margin: 0 0 calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
     font-size: 13px;
 }
 
