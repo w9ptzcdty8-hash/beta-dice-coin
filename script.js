@@ -276,11 +276,15 @@ function createCoinElement() {
 
     const heads = document.createElement("div");
     heads.className = "coin-face coin-face--heads";
-    heads.textContent = "表";
+
+    const logo = document.createElement("img");
+    logo.src = "assets/images/mrs games logo noback.png";
+    logo.alt = "MRS GAMES";
+    logo.className = "coin-logo";
+    heads.appendChild(logo);
 
     const tails = document.createElement("div");
     tails.className = "coin-face coin-face--tails";
-    tails.textContent = "裏";
 
     coin.appendChild(heads);
     coin.appendChild(tails);

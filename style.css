@@ -290,6 +290,14 @@ button {
     color: var(--color-accent);
 }
 
+.coin-logo {
+    width: 72%;
+    height: 72%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
 .coin-face--tails {
     background: linear-gradient(155deg, #262626, #141414);
     color: var(--color-text);
