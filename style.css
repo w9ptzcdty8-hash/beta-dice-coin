@@ -622,20 +622,13 @@ button {
     width: max-content;
     max-width: 100%;
     min-height: var(--ad-height);
-    
     display: flex;
     justify-content: center;
     align-items: center;
-
     background-color: #121212;
-
     z-index: 1000;
-    border-radius: 10px 10px 0 0;
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.35);
-
     padding-top: 1px;
     padding-bottom: calc(1px + env(safe-area-inset-bottom));
-
     border-top: 1px solid #333;
 }
 
