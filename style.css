@@ -636,3 +636,20 @@ button {
 
     border-top: 1px solid #333;
 }
+
+
+/* MRS TOOLS footer link */
+.tools-footer-link {
+    text-align: center;
+    margin: 4px 0 calc(var(--ad-height) + env(safe-area-inset-bottom) + 20px);
+    font-size: 13px;
+}
+
+.tools-footer-link a {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+}
+
+.tools-footer-link a:active {
+    opacity: 0.7;
+}
